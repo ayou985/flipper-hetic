@@ -11,3 +11,5 @@ dmd/dist/
 .env.local
 *.log
 .DS_Store
+.history
+.lh
