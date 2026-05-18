@@ -41,11 +41,17 @@ export function createGameInputController(actions) {
 /**
  * Branche le clavier sur la couche d'input.
  *
- * Mapping actuel :
- * - Start : S, D, Enter, NumpadEnter
+ * Mapping aligné sur l'annexe IoT du sujet HETIC Web3 (contrôleurs simulant le clavier) :
+ * - Flipper gauche : X
+ * - Flipper droit : C
+ * - Start : D
+ * - Pièce entrée : F (MVP : même effet que start côté réseau)
+ *
+ * Confort développeur / accessibilité :
+ * - Start aussi : Enter, NumpadEnter
+ * - Flippers aussi : ArrowLeft, ArrowRight
+ *
  * - Launch : Space
- * - Flipper gauche : ArrowLeft
- * - Flipper droit : ArrowRight
  * - Debug reset : R
  *
  * Retourne une fonction de cleanup.
@@ -61,8 +67,8 @@ export function bindKeyboardInput(controller, target = window) {
     }
 
     if (
-      event.code === "KeyS"
-      || event.code === "KeyD"
+      event.code === "KeyD"
+      || event.code === "KeyF"
       || event.code === "Enter"
       || event.code === "NumpadEnter"
       || event.key === "Enter"
@@ -72,13 +78,13 @@ export function bindKeyboardInput(controller, target = window) {
       return;
     }
 
-    if (event.code === "ArrowLeft") {
+    if (event.code === "KeyX" || event.code === "ArrowLeft") {
       event.preventDefault();
       controller.leftFlipperDown();
       return;
     }
 
-    if (event.code === "ArrowRight") {
+    if (event.code === "KeyC" || event.code === "ArrowRight") {
       event.preventDefault();
       controller.rightFlipperDown();
       return;
@@ -90,12 +96,12 @@ export function bindKeyboardInput(controller, target = window) {
   }
 
   function onKeyUp(event) {
-    if (event.code === "ArrowLeft") {
+    if (event.code === "KeyX" || event.code === "ArrowLeft") {
       controller.leftFlipperUp();
       return;
     }
 
-    if (event.code === "ArrowRight") {
+    if (event.code === "KeyC" || event.code === "ArrowRight") {
       controller.rightFlipperUp();
     }
   }
@@ -107,4 +113,44 @@ export function bindKeyboardInput(controller, target = window) {
     target.removeEventListener("keydown", onKeyDown);
     target.removeEventListener("keyup", onKeyUp);
   };
+}
+
+/**
+ * Point d'entree generique pour brancher une source d'input externe
+ * (ESP32 / Arduino / bridge local).
+ *
+ * `subscribe` doit etre une fonction qui recoit un callback `(actionName) => {}`
+ * et retourne une fonction d'unsubscribe.
+ *
+ * Exemple d'actionName attendu :
+ * - start
+ * - launch
+ * - leftFlipperDown
+ * - leftFlipperUp
+ * - rightFlipperDown
+ * - rightFlipperUp
+ * - debugResetBall
+ */
+export function bindExternalInputSource(subscribe, controller) {
+  if (typeof subscribe !== "function") {
+    throw new Error("bindExternalInputSource: subscribe must be a function");
+  }
+  if (!controller || typeof controller !== "object") {
+    throw new Error("bindExternalInputSource: controller is required");
+  }
+
+  const validActions = new Set([
+    "start",
+    "launch",
+    "leftFlipperDown",
+    "leftFlipperUp",
+    "rightFlipperDown",
+    "rightFlipperUp",
+    "debugResetBall",
+  ]);
+
+  return subscribe((actionName) => {
+    if (!validActions.has(actionName)) return;
+    controller[actionName]?.();
+  });
 }
