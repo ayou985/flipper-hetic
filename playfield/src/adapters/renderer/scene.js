@@ -1,7 +1,10 @@
 /**
- * Playfield — Scene Three.js, camera, lumieres, renderer.
+ * Playfield — Scene Three.js, camera, lumieres, renderer + post-processing.
  */
 import * as THREE from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import {
   MAX_RENDERER_PIXEL_RATIO,
   RENDERER_ANTIALIAS,
@@ -13,9 +16,8 @@ function effectivePixelRatio() {
 
 export function createScene() {
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x1a1a2e);
+  scene.background = new THREE.Color(0x0a0a12);
 
-  // Camera (vue top-down pour ecran vertical 9:16)
   const camera = new THREE.PerspectiveCamera(
     60,
     window.innerWidth / window.innerHeight,
@@ -26,7 +28,6 @@ export function createScene() {
   camera.lookAt(0, 0, 0);
   camera.up.set(0, 0, -1);
 
-  // Renderer
   const renderer = new THREE.WebGLRenderer({
     antialias: RENDERER_ANTIALIAS,
     powerPreference: "high-performance",
@@ -37,19 +38,29 @@ export function createScene() {
   document.body.style.overflow = "hidden";
   document.body.appendChild(renderer.domElement);
 
-  // Lumieres
-  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
   dirLight.position.set(5, 15, 5);
   scene.add(dirLight);
 
-  // Resize
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    0.85,
+    0.4,
+    0.82,
+  );
+  composer.addPass(bloomPass);
+  composer.setSize(window.innerWidth, window.innerHeight);
+
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(effectivePixelRatio());
+    composer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  return { scene, camera, renderer };
+  return { scene, camera, renderer, composer, bloomPass };
 }

@@ -1,0 +1,62 @@
+:root {
+  --vfx-primary: #c7e73c;
+  --vfx-accent: #39ff14;
+  --vfx-highlight: #ffb300;
+  --vfx-warning: #ff2d2d;
+}
+
+body.has-vfx { position: relative; overflow: hidden; }
+
+body.has-vfx::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9999;
+  background: radial-gradient(circle, var(--vfx-primary) 0%, transparent 60%);
+  mix-blend-mode: screen;
+  transition: opacity 220ms ease;
+}
+
+body.has-vfx.flash-bumper::after {
+  animation: vfx-bumper-pulse 300ms ease-out;
+}
+body.has-vfx.flash-gameOver::after {
+  animation: vfx-fade 1100ms ease-out;
+  background: radial-gradient(circle, var(--vfx-warning) 0%, transparent 65%);
+}
+body.has-vfx.flash-start::after {
+  animation: vfx-fade 1400ms ease-out;
+  background: radial-gradient(circle, var(--vfx-primary) 0%, transparent 70%);
+}
+body.has-vfx.flash-milestone::after {
+  animation: vfx-fade 700ms ease-out;
+  background: radial-gradient(circle, var(--vfx-accent) 0%, transparent 65%);
+}
+
+@keyframes vfx-bumper-pulse {
+  0%   { opacity: 0; transform: scale(0.9); }
+  40%  { opacity: 0.75; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.08); }
+}
+@keyframes vfx-fade {
+  0%   { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+.backglass__title {
+  color: var(--vfx-primary) !important;
+  text-shadow:
+    0 0 10px var(--vfx-primary),
+    0 0 25px var(--vfx-primary),
+    0 0 50px rgba(199, 231, 60, 0.45) !important;
+  letter-spacing: 4px !important;
+}
+
+#scoreValue {
+  color: var(--vfx-highlight) !important;
+  text-shadow:
+    0 0 8px var(--vfx-highlight),
+    0 0 22px var(--vfx-highlight);
+}

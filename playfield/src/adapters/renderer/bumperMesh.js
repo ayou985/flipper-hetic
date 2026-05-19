@@ -7,19 +7,19 @@ import {
   BUMPER_HEIGHT,
   BUMPER_POSITIONS,
 } from "../../domain/constants.js";
-
-const BUMPER_COLOR = 0xff2266;
+import { COLORS } from "../../domain/theme.js";
 
 export function createBumperMeshes(scene) {
-  const material = new THREE.MeshStandardMaterial({
-    color: BUMPER_COLOR,
-    metalness: 0.6,
-    roughness: 0.3,
-  });
-
   const meshes = [];
-
   for (const pos of BUMPER_POSITIONS) {
+    // Chaque bumper a son propre materiau pour pouvoir flasher individuellement
+    const material = new THREE.MeshStandardMaterial({
+      color: COLORS.primary,
+      metalness: 0.5,
+      roughness: 0.3,
+      emissive: new THREE.Color(COLORS.primary),
+      emissiveIntensity: 0.65,
+    });
     const mesh = new THREE.Mesh(
       new THREE.CylinderGeometry(BUMPER_RADIUS, BUMPER_RADIUS, BUMPER_HEIGHT, 24),
       material,
@@ -28,6 +28,5 @@ export function createBumperMeshes(scene) {
     scene.add(mesh);
     meshes.push(mesh);
   }
-
   return meshes;
 }

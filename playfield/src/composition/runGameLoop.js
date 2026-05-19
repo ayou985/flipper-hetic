@@ -1,5 +1,5 @@
 /**
- * Boucle de rendu + pas de simulation physique (séparée de la composition root).
+ * Boucle de rendu + pas de simulation physique.
  */
 import {
   syncMeshesWithBodies,
@@ -11,11 +11,6 @@ import {
   resetBallBody,
 } from "../adapters/physics/index.js";
 
-/**
- * Démarre la boucle requestAnimationFrame (physique + sync meshes + rendu).
- *
- * @param {object} deps — références partagées (monde, bille, collision handler, renderer…).
- */
 export function startPlayfieldLoop(deps) {
   const {
     world,
@@ -26,6 +21,7 @@ export function startPlayfieldLoop(deps) {
     renderer,
     scene,
     camera,
+    composer,
     gameState,
   } = deps;
 
@@ -49,7 +45,10 @@ export function startPlayfieldLoop(deps) {
     }
 
     syncMeshesWithBodies(syncPairs);
-    renderer.render(scene, camera);
+
+    // composer prend le relais quand le post-processing est actif
+    if (composer) composer.render();
+    else renderer.render(scene, camera);
   }
 
   animate();

@@ -21,3 +21,7 @@ dmd/dist/
 /docs/prochaines-etapes.md
 /docs/etape10-collisions-drain.md
 /docs/previous-issue.md
+CLAUDE.md
+.claude/
+
+.lh/
