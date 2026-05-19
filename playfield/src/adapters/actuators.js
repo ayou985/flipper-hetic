@@ -1,6 +1,5 @@
 /**
- * Actuators — branche logs + audio (et plus tard les solénoïdes IoT).
- * L'audio est optionnel : si `audio` est null, on garde le comportement console.log d'origine.
+ * Actuators — logs + audio. Le hook IoT viendra se brancher ici plus tard.
  */
 export function createActuators(audio = null) {
   const counts = {

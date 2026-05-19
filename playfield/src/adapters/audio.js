@@ -1,17 +1,13 @@
 /**
- * Audio engine — Web Audio API natif.
- * - Préchargement des samples (decodeAudioData)
- * - GainNode master pour volume + mute global
- * - Persistance localStorage (clé : "flipper.audio")
- * - Anti-spam : cooldown par sample
+ * Moteur audio base sur la Web Audio API.
+ * Precharge les samples, gere le volume / mute global et persiste les prefs.
  */
 
 const STORAGE_KEY = "flipper.audio";
 const DEFAULT_VOLUME = 0.6;
-const DEFAULT_MUTED = false;
 const SAMPLE_COOLDOWN_MS = 60;
 
-const SAMPLE_PATHS = {
+const SAMPLES = {
   "bumper-1": "/sounds/bumper-1.mp3",
   "bumper-2": "/sounds/bumper-2.mp3",
   "bumper-3": "/sounds/bumper-3.mp3",
@@ -27,14 +23,16 @@ const SAMPLE_PATHS = {
 function loadPrefs() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { volume: DEFAULT_VOLUME, muted: DEFAULT_MUTED };
+    if (!raw) return { volume: DEFAULT_VOLUME, muted: false };
     const parsed = JSON.parse(raw);
     return {
-      volume: typeof parsed.volume === "number" ? Math.max(0, Math.min(1, parsed.volume)) : DEFAULT_VOLUME,
+      volume: typeof parsed.volume === "number"
+        ? Math.max(0, Math.min(1, parsed.volume))
+        : DEFAULT_VOLUME,
       muted: !!parsed.muted,
     };
   } catch {
-    return { volume: DEFAULT_VOLUME, muted: DEFAULT_MUTED };
+    return { volume: DEFAULT_VOLUME, muted: false };
   }
 }
 
@@ -42,7 +40,7 @@ function savePrefs(prefs) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
   } catch {
-    // localStorage indisponible (mode privé, etc.) — ignore silencieusement
+    // localStorage indisponible : on continue sans persistance
   }
 }
 
@@ -52,47 +50,37 @@ export function createAudioEngine() {
   let muted = prefs.muted;
 
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  const masterGain = ctx.createGain();
-  masterGain.gain.value = muted ? 0 : volume;
-  masterGain.connect(ctx.destination);
+  const master = ctx.createGain();
+  master.gain.value = muted ? 0 : volume;
+  master.connect(ctx.destination);
 
   const buffers = new Map();
-  const lastPlayedAt = new Map();
+  const lastPlayed = new Map();
   let themeSource = null;
   let ready = false;
-
   const listeners = new Set();
-  function emit() {
+
+  function notify() {
     for (const fn of listeners) fn({ volume, muted });
   }
 
-  async function loadSample(name, url) {
+  async function load(name, url) {
     try {
       const res = await fetch(url);
       const arr = await res.arrayBuffer();
-      const buf = await ctx.decodeAudioData(arr);
-      buffers.set(name, buf);
+      buffers.set(name, await ctx.decodeAudioData(arr));
     } catch (err) {
-      console.warn(`[audio] échec chargement ${name}:`, err);
+      console.warn(`audio: failed to load ${name}`, err);
     }
   }
 
-  async function preload() {
-    await Promise.all(
-      Object.entries(SAMPLE_PATHS).map(([name, url]) => loadSample(name, url)),
-    );
-    ready = true;
-    console.log("[audio] samples préchargés:", buffers.size);
-  }
-
-  // L'AudioContext démarre suspendu sur la plupart des navigateurs (autoplay policy).
-  // On le reprend dès la première interaction utilisateur.
-  function resumeOnInteraction() {
+  // L'AudioContext demarre suspendu (autoplay policy), on le reprend au 1er input
+  function bindUserGesture() {
     const resume = () => {
       if (ctx.state === "suspended") ctx.resume().catch(() => {});
     };
     ["click", "keydown", "touchstart"].forEach((evt) =>
-      window.addEventListener(evt, resume, { once: false, passive: true }),
+      window.addEventListener(evt, resume, { passive: true }),
     );
   }
 
@@ -101,21 +89,18 @@ export function createAudioEngine() {
     const buf = buffers.get(name);
     if (!buf) return;
     const now = performance.now();
-    const last = lastPlayedAt.get(name) || 0;
-    if (now - last < SAMPLE_COOLDOWN_MS) return;
-    lastPlayedAt.set(name, now);
+    if (now - (lastPlayed.get(name) || 0) < SAMPLE_COOLDOWN_MS) return;
+    lastPlayed.set(name, now);
 
     const src = ctx.createBufferSource();
     src.buffer = buf;
-    src.connect(masterGain);
-    try { src.start(0); } catch { /* déjà démarré */ }
+    src.connect(master);
+    try { src.start(0); } catch { /* deja demarre */ }
   }
 
-  /** Joue un sample choisi aléatoirement parmi plusieurs (ex: bumper-1/2/3) */
   function playRandom(names) {
-    if (!names || !names.length) return;
-    const pick = names[Math.floor(Math.random() * names.length)];
-    play(pick);
+    if (!names?.length) return;
+    play(names[Math.floor(Math.random() * names.length)]);
   }
 
   function startTheme(loopVolume = 0.35) {
@@ -129,48 +114,35 @@ export function createAudioEngine() {
     const themeGain = ctx.createGain();
     themeGain.gain.value = loopVolume;
     src.connect(themeGain);
-    themeGain.connect(masterGain);
-    try { src.start(0); } catch { /* déjà démarré */ }
+    themeGain.connect(master);
+    try { src.start(0); } catch { /* deja demarre */ }
     themeSource = src;
   }
 
   function stopTheme() {
-    if (themeSource) {
-      try { themeSource.stop(); } catch { /* déjà arrêté */ }
-      themeSource = null;
-    }
+    if (!themeSource) return;
+    try { themeSource.stop(); } catch { /* deja arrete */ }
+    themeSource = null;
   }
 
   function applyGain() {
-    masterGain.gain.cancelScheduledValues(ctx.currentTime);
-    masterGain.gain.setTargetAtTime(muted ? 0 : volume, ctx.currentTime, 0.02);
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setTargetAtTime(muted ? 0 : volume, ctx.currentTime, 0.02);
   }
 
   function setVolume(v) {
     volume = Math.max(0, Math.min(1, v));
-    if (volume > 0 && muted) muted = false; // unmute auto si on bouge le slider
+    if (volume > 0 && muted) muted = false;
     applyGain();
     savePrefs({ volume, muted });
-    emit();
-  }
-
-  function adjustVolume(delta) {
-    setVolume(volume + delta);
+    notify();
   }
 
   function setMuted(m) {
     muted = !!m;
     applyGain();
     savePrefs({ volume, muted });
-    emit();
-  }
-
-  function toggleMute() {
-    setMuted(!muted);
-  }
-
-  function getState() {
-    return { volume, muted, ready };
+    notify();
   }
 
   function subscribe(fn) {
@@ -179,8 +151,9 @@ export function createAudioEngine() {
     return () => listeners.delete(fn);
   }
 
-  resumeOnInteraction();
-  preload();
+  bindUserGesture();
+  Promise.all(Object.entries(SAMPLES).map(([k, v]) => load(k, v)))
+    .then(() => { ready = true; });
 
   return {
     play,
@@ -188,10 +161,10 @@ export function createAudioEngine() {
     startTheme,
     stopTheme,
     setVolume,
-    adjustVolume,
+    adjustVolume: (delta) => setVolume(volume + delta),
     setMuted,
-    toggleMute,
-    getState,
+    toggleMute: () => setMuted(!muted),
+    getState: () => ({ volume, muted, ready }),
     subscribe,
   };
 }

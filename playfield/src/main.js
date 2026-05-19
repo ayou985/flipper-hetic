@@ -35,19 +35,19 @@ import { flashState } from "./adapters/renderer/vfx/stateOverlay.js";
 import { createAudioEngine } from "./adapters/audio.js";
 import { mountAudioControls } from "./adapters/audio-controls.js";
 
-// --- Audio (issue #78) ---
 const audio = createAudioEngine();
 mountAudioControls(audio);
-window.audio = audio; // debug en console
 
 const actuators = createActuators(audio);
 window.actuators = actuators;
 
-const { scene, camera, renderer, composer, bloomPass } = createScene();
+const { scene, camera, renderer, composer } = createScene();
 const world = createPhysicsWorld();
 const level = buildLevel({ scene, world });
 
-function findClosestBumperMesh(pos) {
+// Le moteur physique nous donne juste une position de collision : on retrouve
+// le mesh bumper le plus proche pour declencher l'animation au bon endroit.
+function closestBumper(pos) {
   if (!pos || !level.bumperMeshes?.length) return null;
   let best = level.bumperMeshes[0];
   let bestDist = Infinity;
@@ -60,14 +60,13 @@ function findClosestBumperMesh(pos) {
   return best;
 }
 
-// Détection milestone côté playfield (1 milestone tous les 1000 pts)
-let lastMilestoneTier = 0;
+let milestoneTier = 0;
 function checkMilestone(score) {
   if (typeof score !== "number") return;
   const tier = Math.floor(score / 1000);
-  if (tier > lastMilestoneTier) {
-    lastMilestoneTier = tier;
-    actuators.onMilestone?.();
+  if (tier > milestoneTier) {
+    milestoneTier = tier;
+    actuators.onMilestone();
     flashState("milestone", 600);
   }
 }
@@ -79,13 +78,13 @@ const socket = initNetwork({
     collisionHandler.resetCollisionCooldowns();
     setFlipperActive(level.flipperBodies, "left", false);
     setFlipperActive(level.flipperBodies, "right", false);
-    lastMilestoneTier = 0;
+    milestoneTier = 0;
     actuators.onGameStart();
     flashState("start", 1200);
   },
   onGameOver(data) {
     flashState("gameOver", 1100);
-    console.log("[main] game over — score final :", data?.score);
+    console.log("[main] game over, score:", data?.score);
   },
   onStateUpdated(data) {
     checkMilestone(data?.score);
@@ -97,7 +96,7 @@ const collisionHandler = createCollisionHandler({
     emitCollision(socket, type);
     if (type === "bumper") {
       actuators.onBumperHit();
-      const mesh = findClosestBumperMesh(ctx?.otherPos);
+      const mesh = closestBumper(ctx?.otherPos);
       if (mesh) flashBumper(mesh);
       flashState("bumper", 180);
     } else if (type === "slingshot") {
@@ -115,9 +114,7 @@ const collisionHandler = createCollisionHandler({
 attachCollisionListener(level.ballBody, collisionHandler);
 
 const inputController = createGameInputController({
-  onStart() {
-    emitStartGame(socket);
-  },
+  onStart() { emitStartGame(socket); },
   onLaunch() {
     if (gameState.status === "playing" && launchBallBody(level.ballBody)) {
       emitLaunchBall(socket);
