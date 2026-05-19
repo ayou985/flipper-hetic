@@ -1,61 +1,40 @@
-# Script de démo — Soutenance
+# Script de demo
 
-> Déroulé minute par minute de la démo live (90 secondes max).
-> Optimisé pour la captation vidéo de secours et la présentation.
+Decoupage approximatif d'une demo live de ~90 secondes.
 
-## ⚙️ Préparation (avant les jurys)
+## Avant la demo
 
-1. Ouvrir un terminal à la racine du projet : `npm run dev:all`
-2. Attendre que les 4 services soient prêts (logs "Local: http://localhost:...")
-3. Ouvrir 3 fenêtres navigateur (idéalement sur 3 écrans / 3 moniteurs) :
-   - **Écran principal** (centre) : `http://localhost:5173` — Playfield
-   - **Écran gauche / haut** : `http://localhost:5174` — Backglass
-   - **Écran droit / bas** : `http://localhost:5175` — DMD
-4. Cliquer une fois dans le playfield (focus clavier + débloque l'AudioContext)
-5. Vérifier que le volume est à ~60% (refresh si besoin)
+1. `npm run dev:all` (4 services prets)
+2. Ouvrir 5173, 5174 et 5175 dans 3 fenetres / ecrans
+3. Cliquer une fois dans le playfield (focus clavier + AudioContext debloque)
 
-## 🎬 Déroulé (durée cible : 90s)
+## Deroule
 
-### Phase 1 — Plan d'ensemble (0–15s)
-- Montrer les 3 écrans simultanément (silence ou commentaire posé)
-- Souligner la **cohérence visuelle** (palette Breaking Bad sur les 3 écrans)
-- Pointer le HUD audio en haut-droite du playfield
+### Plan d'ensemble (15s)
 
-### Phase 2 — Démarrage de la partie (15–30s)
-- Appuyer sur **D** (start)
-- Effet attendu : thème principal démarre + son "Ball Release" + flash jaune + ball spawn
-- Le backglass affiche `STATUT : playing`, le DMD passe sur le score
-- Appuyer sur **Espace** (launch ball)
-- Effet attendu : la bille part vers le haut
+Montrer les 3 vues simultanees. Pointer la coherence visuelle, le HUD audio
+en haut a droite.
 
-### Phase 3 — Action gameplay (30–60s)
-- Jouer activement avec **flèche gauche** / **flèche droite** (ou X/C)
-- Toucher au moins **2 bumpers** différents : flash + son + score qui grimpe
-- Le backglass montre le score qui monte en live (effet glow ambre)
-- Atteindre **1000 pts** si possible : milestone vert toxique sur les 3 écrans
+### Demarrage partie (15s)
 
-### Phase 4 — Contrôles audio (60–75s)
-- Appuyer sur **M** : tout se coupe (HUD passe rouge)
-- Appuyer sur **−** plusieurs fois : volume descend
-- Appuyer sur **+** plusieurs fois : volume remonte
-- Appuyer sur **M** : son revient
+- `D` pour start (theme + flash + spawn bille)
+- `Espace` pour lancer la bille
 
-### Phase 5 — Game over (75–90s)
-- Laisser la bille passer (ou attendre les 3 drains)
-- Effet attendu : overlay rouge plein écran sur les 3 vues + son "He can't keep getting away with it" + thème stoppé
-- Backglass affiche `STATUT : game_over`
+### Action (30s)
 
-## 🎥 Captation vidéo
+Jouer avec les flippers (gauche/droite ou X/C). Toucher au moins 2 bumpers
+differents. Si possible, atteindre 1000 pts pour declencher le milestone.
 
-- **Outil** : OBS Studio (gratuit) ou logiciel de capture intégré Windows (Win+G)
-- **Résolution** : 1920x1080 minimum, 60 fps recommandé
-- **Audio** : capturer le son système (pas juste le micro)
-- **Format de sortie** : MP4 H.264, < 50 Mo si possible
-- **Stockage** : `docs/demo/demo-soutenance.mp4` (et backup cloud)
+### Controles audio (15s)
 
-## 🆘 Plan B si la démo live foire
+`M` (mute), `-` plusieurs fois, `+` plusieurs fois, `M` (unmute).
 
-1. Garder la vidéo enregistrée en local sur le PC de présentation
-2. Vidéo pré-lancée en pause dans VLC dès le début de la soutenance
-3. Si bug live : "Pas de souci, on a une captation de référence" → lancer la vidéo
-4. Continuer le commentaire oral comme si de rien n'était
+### Game over (15s)
+
+Laisser la bille tomber 3 fois. Overlay rouge + sample game over.
+
+## Captation video
+
+OBS Studio ou Win+G (barre Xbox Game Bar). 1080p suffit. Bien capturer
+le son systeme (pas que le micro). Garder une version locale comme plan B
+si la demo live foire.
