@@ -1,11 +1,18 @@
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 :root {
-  font-family: "Trebuchet MS", "Arial", sans-serif;
-  color: #f8fbff;
-  background: radial-gradient(circle at top, #1d2847 0%, #0b1020 55%, #05070f 100%);
+  --bg-deep: #05060c;
+  --bg-mid: #0d1126;
+  --bg-glow: #1a1f3d;
+  --primary: #c7e73c;
+  --primary-glow: rgba(199, 231, 60, 0.55);
+  --highlight: #ffb300;
+  --highlight-glow: rgba(255, 179, 0, 0.6);
+  --warning: #ff2d2d;
+  --text: #f8fbff;
+  --text-dim: #8a93b8;
+  font-family: "Inter", "Trebuchet MS", system-ui, sans-serif;
+  color: var(--text);
 }
 
 body {
@@ -13,53 +20,215 @@ body {
   min-height: 100vh;
   display: grid;
   place-items: center;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, var(--bg-glow) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 20% 100%, rgba(199, 231, 60, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(255, 179, 0, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, var(--bg-mid) 0%, var(--bg-deep) 100%);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Particules lumineuses statiques en arriere-plan */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 12% 20%, rgba(199, 231, 60, 0.4), transparent 50%),
+    radial-gradient(1px 1px at 78% 30%, rgba(255, 179, 0, 0.5), transparent 50%),
+    radial-gradient(2px 2px at 35% 70%, rgba(199, 231, 60, 0.3), transparent 50%),
+    radial-gradient(1px 1px at 90% 80%, rgba(255, 255, 255, 0.4), transparent 50%),
+    radial-gradient(1px 1px at 5% 85%, rgba(199, 231, 60, 0.4), transparent 50%);
+  pointer-events: none;
+  animation: drift 30s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-12px, 8px); }
 }
 
 .backglass {
-  width: min(1000px, 92vw);
-  padding: 2rem;
+  width: min(1100px, 92vw);
+  padding: 2.5rem;
+  position: relative;
+  z-index: 1;
 }
 
+/* Titre principal — effet metallique + glow */
 .backglass__title {
-  margin: 0 0 1.5rem;
+  margin: 0 0 2.5rem;
   text-align: center;
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  letter-spacing: 0.2rem;
+  font-size: clamp(2.2rem, 5vw, 4.5rem);
+  letter-spacing: 0.5rem;
   text-transform: uppercase;
-  color: #ffe479;
-  text-shadow: 0 0 12px rgba(255, 228, 121, 0.4);
+  font-weight: 900;
+  background: linear-gradient(180deg, #fff8d6 0%, var(--primary) 45%, #8eb12a 55%, var(--primary) 75%, #fff8d6 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter:
+    drop-shadow(0 0 12px var(--primary-glow))
+    drop-shadow(0 0 25px rgba(199, 231, 60, 0.3));
+  position: relative;
 }
 
+.backglass__title::after {
+  content: "";
+  display: block;
+  width: 60%;
+  height: 2px;
+  margin: 1rem auto 0;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  box-shadow: 0 0 8px var(--primary-glow);
+}
+
+/* Grille des cards */
 .backglass__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 1.5rem;
 }
 
+/* Cards en glassmorphism */
 .card {
-  padding: 1.2rem;
-  border: 1px solid rgba(136, 169, 255, 0.35);
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(28, 43, 83, 0.85) 0%, rgba(15, 23, 45, 0.85) 100%);
+  position: relative;
+  padding: 1.8rem 1.5rem;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  transition: transform 250ms ease, box-shadow 250ms ease;
+  overflow: hidden;
+}
+
+/* Reflet brillant en haut */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
+  border-radius: 18px 18px 0 0;
+  pointer-events: none;
+}
+
+/* Halo coloré subtil derrière la card */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 18px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(199, 231, 60, 0.4), transparent 40%, transparent 60%, rgba(255, 179, 0, 0.3));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 24px rgba(199, 231, 60, 0.15);
 }
 
 .card__label {
-  margin: 0;
-  font-size: clamp(1rem, 2vw, 1.4rem);
+  margin: 0 0 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   text-transform: uppercase;
-  color: #b5c8ff;
+  letter-spacing: 0.15rem;
+  color: var(--text-dim);
 }
 
 .card__value {
-  margin: 0.7rem 0 0;
-  font-size: clamp(2rem, 5vw, 4rem);
-  font-weight: 700;
+  margin: 0;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 800;
   line-height: 1;
-  color: #ffffff;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Card SCORE : value en ambre brillant */
+.card:nth-child(1) .card__value {
+  color: var(--highlight);
+  text-shadow:
+    0 0 12px var(--highlight-glow),
+    0 0 30px rgba(255, 179, 0, 0.4);
+}
+
+/* Card BILLES : effet petit + animation possible */
+.card:nth-child(2) .card__value {
+  color: #fff;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.3);
+}
+
+/* Card STATUT : couleur dynamique selon status */
+#statusValue {
+  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  text-transform: lowercase;
+  font-style: italic;
+  font-weight: 600;
+}
+
+#statusValue.status-idle { color: var(--text-dim); }
+#statusValue.status-playing {
+  color: var(--primary);
+  text-shadow: 0 0 12px var(--primary-glow);
+}
+#statusValue.status-game_over {
+  color: var(--warning);
+  text-shadow: 0 0 12px rgba(255, 45, 45, 0.6);
+}
+
+/* Footer subtil */
+.backglass__footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.7rem;
+  letter-spacing: 0.4rem;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  opacity: 0.5;
+}
+
+.backglass__footer span {
+  display: inline-block;
+  margin: 0 0.8rem;
+}
+
+.backglass__footer span::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 8px var(--primary-glow);
+  margin-right: 0.4rem;
+  vertical-align: middle;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
 
 @media (max-width: 860px) {
-  .backglass__grid {
-    grid-template-columns: 1fr;
-  }
+  .backglass__grid { grid-template-columns: 1fr; }
 }

@@ -1,6 +1,7 @@
 /**
  * Playfield — Composition root.
  */
+import "./styles.css";
 import { createScene } from "./adapters/renderer/scene.js";
 import {
   initRapier,
@@ -34,9 +35,11 @@ import { flashBumper } from "./adapters/renderer/vfx/bumperFlash.js";
 import { flashState } from "./adapters/renderer/vfx/stateOverlay.js";
 import { createAudioEngine } from "./adapters/audio.js";
 import { mountAudioControls } from "./adapters/audio-controls.js";
+import { mountPlayfieldHud } from "./adapters/renderer/hudOverlay.js";
 
 const audio = createAudioEngine();
 mountAudioControls(audio);
+mountPlayfieldHud();
 
 const actuators = createActuators(audio);
 window.actuators = actuators;

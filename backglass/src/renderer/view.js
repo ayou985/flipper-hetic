@@ -1,10 +1,8 @@
 /**
- * Backglass — Mise à jour de la vue à partir de l'état serveur.
+ * Backglass — Mise a jour de la vue a partir de l'etat serveur.
  */
+const STATUS_CLASSES = ["status-idle", "status-playing", "status-game_over"];
 
-/**
- * @param {{ scoreValue: HTMLElement; ballsLeftValue: HTMLElement; statusValue: HTMLElement }} refs
- */
 export function createBackglassView(refs) {
   const { scoreValue, ballsLeftValue, statusValue } = refs;
 
@@ -12,7 +10,11 @@ export function createBackglassView(refs) {
     renderState(nextState) {
       scoreValue.textContent = String(nextState.score ?? 0);
       ballsLeftValue.textContent = String(nextState.ballsLeft ?? 0);
-      statusValue.textContent = String(nextState.status ?? "idle");
+
+      const status = String(nextState.status ?? "idle");
+      statusValue.textContent = status;
+      statusValue.classList.remove(...STATUS_CLASSES);
+      statusValue.classList.add(`status-${status}`);
     },
   };
 }

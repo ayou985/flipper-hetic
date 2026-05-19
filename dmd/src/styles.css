@@ -1,5 +1,9 @@
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+
+:root {
+  --crt-orange: #ff7a2a;
+  --crt-dim: #ffb48f;
+  --crt-bg: #1a0a02;
 }
 
 body {
@@ -7,32 +11,108 @@ body {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: #050505;
-  color: #ff5a1f;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 50%, #1a0a02 0%, #000000 80%);
+  color: var(--crt-orange);
   font-family: "Courier New", Courier, monospace;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Bruit / grain CRT */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    repeating-radial-gradient(circle at 20% 30%, transparent 0, rgba(255, 122, 42, 0.02) 1px, transparent 2px),
+    repeating-radial-gradient(circle at 80% 60%, transparent 0, rgba(255, 122, 42, 0.02) 1px, transparent 2px);
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+/* Vignettage CRT global */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 100% 100% at 50% 50%, transparent 50%, rgba(0, 0, 0, 0.55) 100%);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .dmd {
-  width: min(920px, 94vw);
-  padding: 1rem;
+  width: min(960px, 94vw);
+  padding: 1.5rem;
+  position: relative;
+  z-index: 3;
 }
 
 .dmd__screen {
-  border: 3px solid #ff7a2a;
-  border-radius: 10px;
-  padding: 0.8rem;
-  background: #120701;
-  box-shadow: 0 0 24px rgba(255, 90, 31, 0.25) inset;
+  position: relative;
+  border: 3px solid var(--crt-orange);
+  border-radius: 14px;
+  padding: 1.2rem;
+  background:
+    linear-gradient(180deg, #1f0a02 0%, #0d0401 100%);
+  box-shadow:
+    0 0 30px rgba(255, 90, 31, 0.35),
+    0 0 60px rgba(255, 90, 31, 0.15),
+    inset 0 0 40px rgba(255, 90, 31, 0.18),
+    inset 0 0 8px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+/* Scanlines horizontales */
+.dmd__screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.18) 0px,
+      rgba(0, 0, 0, 0.18) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  pointer-events: none;
+  z-index: 10;
+  border-radius: 11px;
+}
+
+/* Effet de brillance "vitre bombee" */
+.dmd__screen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 35%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: 11px 11px 0 0;
+  z-index: 11;
 }
 
 .dmd__meta {
   display: flex;
   justify-content: space-between;
   gap: 0.8rem;
-  margin: 0 0 0.6rem;
-  font-size: 0.9rem;
-  color: #ffb48f;
-  opacity: 0.95;
+  margin: 0 0 0.8rem;
+  font-size: 0.85rem;
+  color: var(--crt-dim);
+  text-shadow: 0 0 4px rgba(255, 180, 143, 0.6);
+  text-transform: lowercase;
+  letter-spacing: 0.1rem;
+  position: relative;
+  z-index: 5;
+}
+
+.dmd__meta span::before {
+  content: "▸ ";
+  color: var(--crt-orange);
 }
 
 .dmd__canvas {
@@ -41,4 +121,40 @@ body {
   display: block;
   border-radius: 6px;
   background: #0d0401;
+  position: relative;
+  z-index: 5;
+  filter:
+    drop-shadow(0 0 6px rgba(255, 122, 42, 0.4))
+    saturate(1.1);
+}
+
+/* LED indicator en coin haut-droit du screen — clignote en playing */
+.dmd__led {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--crt-orange);
+  box-shadow: 0 0 8px var(--crt-orange), 0 0 14px var(--crt-orange);
+  z-index: 12;
+  opacity: 0.7;
+  animation: led-pulse 2s ease-in-out infinite;
+}
+
+@keyframes led-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Caption sous l'ecran */
+.dmd__caption {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.4rem;
+  color: var(--crt-dim);
+  opacity: 0.5;
+  text-transform: uppercase;
 }

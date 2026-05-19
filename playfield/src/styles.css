@@ -1,0 +1,66 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+  position: relative;
+}
+
+/* Vignettage doux autour du playfield */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: multiply;
+}
+
+/* Halos ambiants colores dans les coins */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 40% 40% at 0% 0%, rgba(199, 231, 60, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 100% 0%, rgba(255, 179, 0, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 0% 100%, rgba(255, 179, 0, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 100% 100%, rgba(199, 231, 60, 0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Petit indicator FPS en coin (cache par defaut, debug only) */
+.playfield-hud {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  letter-spacing: 0.1rem;
+  z-index: 100;
+  pointer-events: none;
+  display: flex;
+  gap: 1rem;
+}
+
+.playfield-hud::before {
+  content: "■";
+  color: var(--primary, #c7e73c);
+  text-shadow: 0 0 6px rgba(199, 231, 60, 0.7);
+  animation: led-pulse 2s ease-in-out infinite;
+}
+
+@keyframes led-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* Le canvas Three.js prend tout l'ecran mais doit etre sous les overlays */
+canvas {
+  position: relative;
+  z-index: 1;
+}

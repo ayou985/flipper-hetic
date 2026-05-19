@@ -17,9 +17,14 @@ export function mountBackglassRoot() {
       </article>
       <article class="card">
         <p class="card__label">Statut</p>
-        <p id="statusValue" class="card__value">idle</p>
+        <p id="statusValue" class="card__value status-idle">idle</p>
       </article>
     </section>
+    <footer class="backglass__footer">
+      <span>HETIC W3</span>
+      <span>SOCKET LIVE</span>
+      <span>PHYSICS RAPIER</span>
+    </footer>
   `;
 
   document.body.append(app);
