@@ -30,6 +30,7 @@ import { createCollisionHandler } from "./usecases/collisionHandler.js";
 import { createActuators } from "./adapters/actuators.js";
 import { createGameInputController, bindKeyboardInput } from "./adapters/input.js";
 import { buildLevel } from "./composition/buildLevel.js";
+import { addThemeDecor } from "./adapters/renderer/themeDecor.js";
 import { startPlayfieldLoop } from "./composition/runGameLoop.js";
 import { flashBumper } from "./adapters/renderer/vfx/bumperFlash.js";
 import { flashState } from "./adapters/renderer/vfx/stateOverlay.js";
@@ -47,6 +48,7 @@ window.actuators = actuators;
 const { scene, camera, renderer, composer } = createScene();
 const world = createPhysicsWorld();
 const level = buildLevel({ scene, world });
+addThemeDecor(scene, [level.syncPairs[0].mesh]);
 
 // Le moteur physique nous donne juste une position de collision : on retrouve
 // le mesh bumper le plus proche pour declencher l'animation au bon endroit.
