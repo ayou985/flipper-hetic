@@ -32,6 +32,7 @@ import { createGameInputController, bindKeyboardInput } from "./adapters/input.j
 import { buildLevel } from "./composition/buildLevel.js";
 import { addThemeDecor } from "./adapters/renderer/themeDecor.js";
 import { addAmbiance } from "./adapters/renderer/ambiance.js";
+import { addRails } from "./adapters/renderer/rails.js";
 import { startPlayfieldLoop } from "./composition/runGameLoop.js";
 import { flashBumper } from "./adapters/renderer/vfx/bumperFlash.js";
 import { flashState } from "./adapters/renderer/vfx/stateOverlay.js";
@@ -51,6 +52,7 @@ addAmbiance(scene);
 const world = createPhysicsWorld();
 const level = buildLevel({ scene, world });
 addThemeDecor(scene, [level.syncPairs[0].mesh]);
+addRails(scene);
 
 // Le moteur physique nous donne juste une position de collision : on retrouve
 // le mesh bumper le plus proche pour declencher l'animation au bon endroit.

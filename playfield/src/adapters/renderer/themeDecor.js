@@ -1,33 +1,33 @@
 /**
- * Decor thematique (labo / chimie) ajoute par-dessus le plateau.
- * Purement visuel : aucun corps physique, place hors des trajectoires.
+ * Decor thematique (labo / chimie) : texture du plateau + fioles 3D.
+ * Purement visuel, hors des trajectoires.
  */
 import * as THREE from "three";
 import { TABLE_WIDTH, TABLE_DEPTH } from "../../domain/constants.js";
 import { COLORS } from "../../domain/theme.js";
 
-// Genere une texture "feutre + voile chimique" via canvas 2D
 function makePlayfieldTexture() {
   const c = document.createElement("canvas");
   c.width = 512;
   c.height = 1024;
   const ctx = c.getContext("2d");
 
-  // Fond degrade desert -> vert toxique
+  // Degrade pousse cote vert/jaune chimique
   const grad = ctx.createLinearGradient(0, 0, 0, c.height);
-  grad.addColorStop(0, "#1a3a16");
-  grad.addColorStop(0.5, "#21421d");
-  grad.addColorStop(1, "#2a3315");
+  grad.addColorStop(0, "#1c4a10");
+  grad.addColorStop(0.45, "#28571a");
+  grad.addColorStop(0.75, "#3a5e12");
+  grad.addColorStop(1, "#243f0c");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, c.width, c.height);
 
-  // Halos verts diffus facon fioles bouillonnantes
+  // Halos verts toxiques plus marques
   const blobs = [
-    [120, 250, 90], [400, 500, 120], [200, 780, 100], [330, 160, 70],
+    [120, 250, 110], [400, 500, 140], [200, 780, 120], [330, 160, 80], [430, 880, 90],
   ];
   for (const [x, y, r] of blobs) {
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, "rgba(57, 255, 20, 0.10)");
+    g.addColorStop(0, "rgba(57, 255, 20, 0.16)");
     g.addColorStop(1, "rgba(57, 255, 20, 0)");
     ctx.fillStyle = g;
     ctx.beginPath();
@@ -35,14 +35,24 @@ function makePlayfieldTexture() {
     ctx.fill();
   }
 
-  // Molecules stylisees (cercles relies par des traits)
-  ctx.strokeStyle = "rgba(199, 231, 60, 0.18)";
-  ctx.fillStyle = "rgba(199, 231, 60, 0.22)";
+  // Lanes lumineuses jaunes (bandes facon couloirs de flipper)
+  ctx.strokeStyle = "rgba(199, 231, 60, 0.30)";
+  ctx.lineWidth = 10;
+  ctx.beginPath();
+  ctx.moveTo(80, 60); ctx.lineTo(80, 240);
+  ctx.moveTo(130, 60); ctx.lineTo(130, 240);
+  ctx.moveTo(432, 60); ctx.lineTo(432, 240);
+  ctx.moveTo(382, 60); ctx.lineTo(382, 240);
+  ctx.stroke();
+
+  // Molecules stylisees
+  ctx.strokeStyle = "rgba(199, 231, 60, 0.22)";
+  ctx.fillStyle = "rgba(199, 231, 60, 0.28)";
   ctx.lineWidth = 3;
   const molecules = [
-    [{ x: 90, y: 120 }, { x: 150, y: 90 }, { x: 150, y: 160 }],
+    [{ x: 90, y: 360 }, { x: 150, y: 330 }, { x: 150, y: 400 }],
     [{ x: 380, y: 700 }, { x: 440, y: 730 }, { x: 410, y: 790 }, { x: 350, y: 760 }],
-    [{ x: 250, y: 420 }, { x: 310, y: 400 }, { x: 290, y: 470 }],
+    [{ x: 250, y: 480 }, { x: 310, y: 460 }, { x: 290, y: 530 }],
   ];
   for (const atoms of molecules) {
     ctx.beginPath();
@@ -62,7 +72,6 @@ function makePlayfieldTexture() {
   return tex;
 }
 
-// Une fiole : cylindre de verre + liquide vert emissif
 function makeFlask(scene, x, z, scale = 1) {
   const group = new THREE.Group();
 
@@ -85,15 +94,14 @@ function makeFlask(scene, x, z, scale = 1) {
     new THREE.MeshStandardMaterial({
       color: COLORS.accent,
       emissive: new THREE.Color(COLORS.accent),
-      emissiveIntensity: 1.2,
+      emissiveIntensity: 1.3,
       roughness: 0.3,
     }),
   );
   liquid.position.y = 0.22 * scale;
   group.add(liquid);
 
-  // Petite lumiere pour le glow avec le bloom
-  group.add(new THREE.PointLight(COLORS.accent, 0.8, 3, 2));
+  group.add(new THREE.PointLight(COLORS.accent, 0.9, 3, 2));
 
   group.position.set(x, 0, z);
   scene.add(group);
@@ -101,18 +109,16 @@ function makeFlask(scene, x, z, scale = 1) {
 }
 
 export function addThemeDecor(scene, tableMeshes) {
-  // 1. Applique la texture sur le plateau (mesh 0 = plateau)
   const playfield = tableMeshes[0];
   if (playfield?.material) {
     playfield.material.map = makePlayfieldTexture();
-    playfield.material.color.set(0xffffff); // laisse la texture parler
+    playfield.material.color.set(0xffffff);
     playfield.material.needsUpdate = true;
   }
 
-  // 2. Place 3 fioles dans des coins libres (hors trajectoires et bumpers)
   const halfW = TABLE_WIDTH / 2;
   const halfD = TABLE_DEPTH / 2;
-  makeFlask(scene, -halfW + 0.9, -halfD + 1.0, 0.8);  // coin haut gauche
-  makeFlask(scene, halfW - 0.9, -halfD + 1.4, 1.0);   // coin haut droit
-  makeFlask(scene, halfW - 1.0, 0.5, 0.7);            // milieu droit
+  makeFlask(scene, -halfW + 0.9, -halfD + 1.0, 0.8);
+  makeFlask(scene, halfW - 0.9, -halfD + 1.4, 1.0);
+  makeFlask(scene, halfW - 1.0, 0.5, 0.7);
 }
