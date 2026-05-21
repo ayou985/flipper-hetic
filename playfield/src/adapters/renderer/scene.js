@@ -40,10 +40,10 @@ export function createScene() {
   document.body.style.overflow = "hidden";
   document.body.appendChild(renderer.domElement);
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  scene.add(new THREE.AmbientLight(0xbfe07a, 0.3));
 
   // Spot principal facon eclairage de cabinet, projette des ombres
-  const spot = new THREE.SpotLight(0xfff2d6, 1.2, 60, Math.PI / 3, 0.4, 1.2);
+  const spot = new THREE.SpotLight(0xd8e89a, 1.15, 60, Math.PI / 3, 0.4, 1.2);
   spot.position.set(0, 25, 0);
   spot.target.position.set(0, 0, 0);
   spot.castShadow = true;

@@ -31,6 +31,7 @@ import { createActuators } from "./adapters/actuators.js";
 import { createGameInputController, bindKeyboardInput } from "./adapters/input.js";
 import { buildLevel } from "./composition/buildLevel.js";
 import { addThemeDecor } from "./adapters/renderer/themeDecor.js";
+import { addAmbiance } from "./adapters/renderer/ambiance.js";
 import { startPlayfieldLoop } from "./composition/runGameLoop.js";
 import { flashBumper } from "./adapters/renderer/vfx/bumperFlash.js";
 import { flashState } from "./adapters/renderer/vfx/stateOverlay.js";
@@ -46,6 +47,7 @@ const actuators = createActuators(audio);
 window.actuators = actuators;
 
 const { scene, camera, renderer, composer } = createScene();
+addAmbiance(scene);
 const world = createPhysicsWorld();
 const level = buildLevel({ scene, world });
 addThemeDecor(scene, [level.syncPairs[0].mesh]);
