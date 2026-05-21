@@ -1,5 +1,5 @@
 /**
- * DMD — Montage du DOM (structure statique uniquement).
+ * DMD : structure DOM statique.
  */
 export function mountDmdShell() {
   const app = document.createElement("main");
@@ -13,7 +13,6 @@ export function mountDmdShell() {
       </div>
       <canvas id="dmdCanvas" class="dmd__canvas" aria-label="Dot matrix display"></canvas>
     </section>
-    <p class="dmd__caption">DOT MATRIX DISPLAY · RT-128X32</p>
   `;
 
   document.body.append(app);

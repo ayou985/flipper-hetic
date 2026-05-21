@@ -1,5 +1,5 @@
 /**
- * HUD volume / mute + bindings clavier (M, +/-).
+ * Affichage volume/mute en haut a droite + raccourcis clavier (M, +/-).
  */
 
 const HUD_STYLES = `
@@ -33,6 +33,28 @@ const HUD_STYLES = `
 #audio-hud.muted .bar-fill { background: #555; }
 `;
 
+let hud = null;
+let icon = null;
+let fill = null;
+let val = null;
+let activeTimer = null;
+
+function pulse() {
+  hud.classList.add("active");
+  clearTimeout(activeTimer);
+  activeTimer = setTimeout(() => hud.classList.remove("active"), 1400);
+}
+
+// Appele par le moteur audio a chaque changement de volume/mute
+export function updateAudioHud({ volume, muted }) {
+  if (!hud) return;
+  const pct = Math.round(volume * 100);
+  fill.style.width = (muted ? 0 : pct) + "%";
+  val.textContent = muted ? "MUTE" : `${pct}%`;
+  icon.textContent = muted ? "🔇" : (pct === 0 ? "🔈" : pct < 50 ? "🔉" : "🔊");
+  hud.classList.toggle("muted", muted);
+}
+
 export function mountAudioControls(audio) {
   if (document.getElementById("audio-hud-style")) return;
 
@@ -41,7 +63,7 @@ export function mountAudioControls(audio) {
   style.textContent = HUD_STYLES;
   document.head.appendChild(style);
 
-  const hud = document.createElement("div");
+  hud = document.createElement("div");
   hud.id = "audio-hud";
   hud.innerHTML = `
     <span class="icon" title="Mute / Unmute (M)">🔊</span>
@@ -51,24 +73,11 @@ export function mountAudioControls(audio) {
   `;
   document.body.appendChild(hud);
 
-  const icon = hud.querySelector(".icon");
-  const fill = hud.querySelector(".bar-fill");
-  const val = hud.querySelector(".val");
+  icon = hud.querySelector(".icon");
+  fill = hud.querySelector(".bar-fill");
+  val = hud.querySelector(".val");
 
-  let activeTimer = null;
-  function pulse() {
-    hud.classList.add("active");
-    clearTimeout(activeTimer);
-    activeTimer = setTimeout(() => hud.classList.remove("active"), 1400);
-  }
-
-  audio.subscribe(({ volume, muted }) => {
-    const pct = Math.round(volume * 100);
-    fill.style.width = (muted ? 0 : pct) + "%";
-    val.textContent = muted ? "MUTE" : `${pct}%`;
-    icon.textContent = muted ? "🔇" : (pct === 0 ? "🔈" : pct < 50 ? "🔉" : "🔊");
-    hud.classList.toggle("muted", muted);
-  });
+  updateAudioHud(audio.getState());
 
   icon.addEventListener("click", () => { audio.toggleMute(); pulse(); });
 

@@ -1,5 +1,5 @@
 /**
- * Overlay plein ecran pour signaler les transitions d'etat de jeu.
+ * Overlay plein ecran pour signaler les changements d etat.
  */
 import { CSS_COLORS } from "../../../domain/theme.js";
 

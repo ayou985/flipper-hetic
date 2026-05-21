@@ -1,5 +1,5 @@
 /**
- * Backglass — Montage du DOM (structure statique uniquement).
+ * Backglass : structure DOM statique.
  */
 export function mountBackglassRoot() {
   const app = document.createElement("main");
@@ -20,11 +20,6 @@ export function mountBackglassRoot() {
         <p id="statusValue" class="card__value status-idle">idle</p>
       </article>
     </section>
-    <footer class="backglass__footer">
-      <span>HETIC W3</span>
-      <span>SOCKET LIVE</span>
-      <span>PHYSICS RAPIER</span>
-    </footer>
   `;
 
   document.body.append(app);

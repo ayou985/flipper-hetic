@@ -34,10 +34,10 @@ import { startPlayfieldLoop } from "./composition/runGameLoop.js";
 import { flashBumper } from "./adapters/renderer/vfx/bumperFlash.js";
 import { flashState } from "./adapters/renderer/vfx/stateOverlay.js";
 import { createAudioEngine } from "./adapters/audio.js";
-import { mountAudioControls } from "./adapters/audio-controls.js";
+import { mountAudioControls, updateAudioHud } from "./adapters/audio-controls.js";
 import { mountPlayfieldHud } from "./adapters/renderer/hudOverlay.js";
 
-const audio = createAudioEngine();
+const audio = createAudioEngine(updateAudioHud);
 mountAudioControls(audio);
 mountPlayfieldHud();
 

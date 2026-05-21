@@ -1,11 +1,11 @@
 /**
- * Moteur audio base sur la Web Audio API.
- * Precharge les samples, gere le volume / mute global et persiste les prefs.
+ * Moteur audio (Web Audio API).
+ * Charge les samples, gere le volume/mute global et garde les prefs en localStorage.
  */
 
 const STORAGE_KEY = "flipper.audio";
 const DEFAULT_VOLUME = 0.6;
-const SAMPLE_COOLDOWN_MS = 60;
+const COOLDOWN_MS = 60;
 
 const SAMPLES = {
   "bumper-1": "/sounds/bumper-1.mp3",
@@ -24,13 +24,11 @@ function loadPrefs() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { volume: DEFAULT_VOLUME, muted: false };
-    const parsed = JSON.parse(raw);
-    return {
-      volume: typeof parsed.volume === "number"
-        ? Math.max(0, Math.min(1, parsed.volume))
-        : DEFAULT_VOLUME,
-      muted: !!parsed.muted,
-    };
+    const p = JSON.parse(raw);
+    const volume = typeof p.volume === "number"
+      ? Math.max(0, Math.min(1, p.volume))
+      : DEFAULT_VOLUME;
+    return { volume, muted: !!p.muted };
   } catch {
     return { volume: DEFAULT_VOLUME, muted: false };
   }
@@ -40,11 +38,11 @@ function savePrefs(prefs) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
   } catch {
-    // localStorage indisponible : on continue sans persistance
+    // pas de localStorage (navigation privee), tant pis
   }
 }
 
-export function createAudioEngine() {
+export function createAudioEngine(onChange = null) {
   const prefs = loadPrefs();
   let volume = prefs.volume;
   let muted = prefs.muted;
@@ -58,10 +56,9 @@ export function createAudioEngine() {
   const lastPlayed = new Map();
   let themeSource = null;
   let ready = false;
-  const listeners = new Set();
 
-  function notify() {
-    for (const fn of listeners) fn({ volume, muted });
+  function emitChange() {
+    if (onChange) onChange({ volume, muted });
   }
 
   async function load(name, url) {
@@ -70,26 +67,23 @@ export function createAudioEngine() {
       const arr = await res.arrayBuffer();
       buffers.set(name, await ctx.decodeAudioData(arr));
     } catch (err) {
-      console.warn(`audio: failed to load ${name}`, err);
+      console.warn(`audio: impossible de charger ${name}`, err);
     }
   }
 
-  // L'AudioContext demarre suspendu (autoplay policy), on le reprend au 1er input
-  function bindUserGesture() {
-    const resume = () => {
-      if (ctx.state === "suspended") ctx.resume().catch(() => {});
-    };
-    ["click", "keydown", "touchstart"].forEach((evt) =>
-      window.addEventListener(evt, resume, { passive: true }),
-    );
-  }
+  // Les navigateurs bloquent l'audio tant que l'utilisateur n'a pas interagi.
+  const resumeCtx = () => {
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+  };
+  window.addEventListener("click", resumeCtx, { passive: true });
+  window.addEventListener("keydown", resumeCtx, { passive: true });
 
   function play(name) {
     if (!ready) return;
     const buf = buffers.get(name);
     if (!buf) return;
     const now = performance.now();
-    if (now - (lastPlayed.get(name) || 0) < SAMPLE_COOLDOWN_MS) return;
+    if (now - (lastPlayed.get(name) || 0) < COOLDOWN_MS) return;
     lastPlayed.set(name, now);
 
     const src = ctx.createBufferSource();
@@ -111,10 +105,10 @@ export function createAudioEngine() {
     const src = ctx.createBufferSource();
     src.buffer = buf;
     src.loop = true;
-    const themeGain = ctx.createGain();
-    themeGain.gain.value = loopVolume;
-    src.connect(themeGain);
-    themeGain.connect(master);
+    const g = ctx.createGain();
+    g.gain.value = loopVolume;
+    src.connect(g);
+    g.connect(master);
     try { src.start(0); } catch { /* deja demarre */ }
     themeSource = src;
   }
@@ -135,25 +129,20 @@ export function createAudioEngine() {
     if (volume > 0 && muted) muted = false;
     applyGain();
     savePrefs({ volume, muted });
-    notify();
+    emitChange();
   }
 
   function setMuted(m) {
     muted = !!m;
     applyGain();
     savePrefs({ volume, muted });
-    notify();
+    emitChange();
   }
 
-  function subscribe(fn) {
-    listeners.add(fn);
-    fn({ volume, muted });
-    return () => listeners.delete(fn);
-  }
-
-  bindUserGesture();
   Promise.all(Object.entries(SAMPLES).map(([k, v]) => load(k, v)))
     .then(() => { ready = true; });
+
+  emitChange();
 
   return {
     play,
@@ -161,10 +150,9 @@ export function createAudioEngine() {
     startTheme,
     stopTheme,
     setVolume,
-    adjustVolume: (delta) => setVolume(volume + delta),
+    adjustVolume: (d) => setVolume(volume + d),
     setMuted,
     toggleMute: () => setMuted(!muted),
-    getState: () => ({ volume, muted, ready }),
-    subscribe,
+    getState: () => ({ volume, muted }),
   };
 }
