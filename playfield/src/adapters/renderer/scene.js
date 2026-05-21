@@ -1,5 +1,5 @@
 /**
- * Playfield — Scene Three.js, camera, lumieres, renderer + post-processing.
+ * Playfield : scene Three.js, camera, lumieres, renderer + post-processing.
  */
 import * as THREE from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -34,12 +34,24 @@ export function createScene() {
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(effectivePixelRatio());
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   document.body.style.margin = "0";
   document.body.style.overflow = "hidden";
   document.body.appendChild(renderer.domElement);
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.45));
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.85);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+
+  // Spot principal facon eclairage de cabinet, projette des ombres
+  const spot = new THREE.SpotLight(0xfff2d6, 1.2, 60, Math.PI / 3, 0.4, 1.2);
+  spot.position.set(0, 25, 0);
+  spot.target.position.set(0, 0, 0);
+  spot.castShadow = true;
+  spot.shadow.mapSize.set(1024, 1024);
+  scene.add(spot);
+  scene.add(spot.target);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
   dirLight.position.set(5, 15, 5);
   scene.add(dirLight);
 

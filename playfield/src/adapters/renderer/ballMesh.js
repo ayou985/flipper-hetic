@@ -1,5 +1,5 @@
 /**
- * Playfield — Mesh Three.js de la bille.
+ * Playfield : mesh de la bille (chrome + halo).
  */
 import * as THREE from "three";
 import { BALL_RADIUS } from "../../domain/constants.js";
@@ -16,7 +16,7 @@ export function createBallMesh(scene) {
       emissiveIntensity: 0.4,
     }),
   );
-  // Petite point light pour renforcer le halo avec le bloom
+  mesh.castShadow = true;
   mesh.add(new THREE.PointLight(COLORS.highlight, 1.8, 6, 2));
   scene.add(mesh);
   return mesh;
