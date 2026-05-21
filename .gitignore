@@ -21,10 +21,4 @@ dmd/dist/
 /docs/prochaines-etapes.md
 /docs/etape10-collisions-drain.md
 /docs/previous-issue.md
-CLAUDE.md
-.claude/
-
-.lh/
-naturalize.sh
-polish-visual.sh
-naturalize2.sh
+/docs/GLB-ASSETS.md

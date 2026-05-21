@@ -9,6 +9,8 @@ import {
   postStepFlippers,
   clampBallBody,
   resetBallBody,
+  updateLaunchGate,
+  openLaunchGate,
 } from "../adapters/physics/index.js";
 
 export function startPlayfieldLoop(deps) {
@@ -18,6 +20,7 @@ export function startPlayfieldLoop(deps) {
     collisionHandler,
     ballBody,
     flipperBodies,
+    launchGateBody,
     renderer,
     scene,
     camera,
@@ -38,9 +41,11 @@ export function startPlayfieldLoop(deps) {
     world.step(FIXED_TIME_STEP, delta, MAX_SUB_STEPS);
     postStepFlippers(flipperBodies);
     clampBallBody(ballBody);
+    updateLaunchGate(launchGateBody, ballBody.position.z);
 
     if (collisionHandler.checkDrain(ballBody.position.z, gameState.status)) {
       resetBallBody(ballBody);
+      openLaunchGate(launchGateBody);
       collisionHandler.resetDrainFlag();
     }
 
